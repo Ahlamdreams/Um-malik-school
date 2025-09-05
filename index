@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <title>يدٌ تغيب، وأخرى تضيء</title>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            direction: rtl; 
+            text-align: right; 
+            margin: 0; 
+            background: linear-gradient(to right, #f8f9fa, #e9ecef); 
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 0px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .message-bar {
+            background-color: #FFC107; /* لون ذهبي جذاب */
+            color: #333;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .header-logo {
+            height: 50px;
+            width: auto;
+            margin-left: 15px;
+        }
+        .header-text-wrapper {
+            overflow: hidden;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .header-text {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scroll-left 15s linear infinite;
+        }
+        @keyframes scroll-left {
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .container { 
+            max-width: 600px; 
+            margin: auto; 
+            padding: 30px; 
+            border: 1px solid #ccc; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+            background-color: #ffffff;
+        }
+        h2 { 
+            text-align: center; 
+            color: #333; 
+        }
+        label { 
+            display: block; 
+            margin-top: 15px; 
+            font-weight: bold; 
+            color: #555;
+        }
+        input[type="date"], input[type="text"], input[type="submit"], select, canvas { 
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 8px; 
+            box-sizing: border-box; 
+            border: 1px solid #ced4da; 
+            border-radius: 8px; 
+            font-size: 16px;
+            background-color: #f1f3f5;
+        }
+        select {
+            background-color: #e9f5ff;
+            border: 1px solid #99cfff;
+            color: #333;
+            cursor: pointer;
+        }
+        input[type="submit"] { 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            margin-top: 25px; 
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover { 
+            background-color: #45a049; 
+        }
+        #signature-pad { 
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            background-color: #ffffff;
+            margin-top: 8px;
+        }
+        #clear-signature {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        
+<img src="https://drive.google.com/uc?export=view&id=1qH0voYT4_r4dyalvx22zXWr948dpFwhZ" alt="شعار المدرسة" class="header-logo">
+        <div class="header-text-wrapper">
+            <span class="header-text">مدرسة أم مالك الأنصارية للبنات</span>
+        </div>
+    </div>
+    <div class="message-bar">
+        استدامة التعليم... مسؤولية الجميع
+    </div>
+    <div class="container">
+        <h2>يدٌ تغيب، وأخرى تضيء</h2>
+        <form id="dailyForm" onsubmit="handleFormSubmit(this)">
+            <label for="date">التاريخ:</label>
+            <input type="date" id="date" name="التاريخ" required>
+
+            <label for="day">اليوم:</label>
+            <select id="day" name="اليوم" required></select>
+
+            <label for="period">الحصة:</label>
+            <select id="period" name="الحصة" required></select>
+            
+            <label for="class">الصف:</label>
+            <select id="class" name="الصف" required></select>
+
+            <label for="subject">المادة:</label>
+            <select id="subject" name="المادة" required></select>
+
+            <label for="originalTeacher">المعلمة الغائبة:</label>
+            <select id="originalTeacher" name="المعلمة_الغائبة" required></select>
+
+            <label for="substituteTeacher">المعلمة البديلة:</label>
+            <select id="substituteTeacher" name="المعلمة_البديلة" required></select>
+            
+            <label for="phone">رقم الهاتف:</label>
+            <input type="text" id="phone" name="رقم_الهاتف" readonly>
+
+            <label for="signature">التوقيع:</label>
+            <canvas id="signature-pad" class="signature-pad" width="400" height="200"></canvas>
+            <button type="button" id="clear-signature">مسح التوقيع</button>
+            
+            <input type="hidden" id="signature-data" name="التوقيع">
+
+            <input type="submit" value="تسجيل">
+        </form>
+        <div id="responseMessage" style="text-align: center; margin-top: 15px; font-weight: bold;"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script>
+        var substituteTeachersData = [];
+        var signaturePad;
+
+        window.addEventListener('load', function() {
+            var canvas = document.getElementById('signature-pad');
+            signaturePad = new SignaturePad(canvas);
+            
+            document.getElementById('clear-signature').addEventListener('click', function() {
+                signaturePad.clear();
+            });
+
+            loadAllData();
+        });
+
+        function loadAllData() {
+            google.script.run.withSuccessHandler(populateDropdowns).getAllDropdownData();
+        }
+
+        function populateDropdowns(data) {
+            substituteTeachersData = data.substituteTeachers;
+
+            populateSingleDropdown("originalTeacher", data.absentTeachers);
+            populateSingleDropdown("substituteTeacher", data.substituteTeachers.map(t => t.name));
+            populateSingleDropdown("day", data.days);
+            populateSingleDropdown("period", data.periods);
+            populateSingleDropdown("class", data.classes);
+            populateSingleDropdown("subject", data.subjects);
+
+            document.getElementById("substituteTeacher").addEventListener('change', function() {
+                var selectedName = this.value;
+                var selectedTeacher = substituteTeachersData.find(t => t.name === selectedName);
+                if (selectedTeacher) {
+                    document.getElementById("phone").value = selectedTeacher.phone;
+                }
+            });
+        }
+        
+        function populateSingleDropdown(elementId, items) {
+            var dropdown = document.getElementById(elementId);
+            dropdown.innerHTML = '<option value="">-- اختر --</option>';
+            items.forEach(function(item) {
+                var option = document.createElement("option");
+                option.text = item;
+                option.value = item;
+                dropdown.add(option);
+            });
+        }
+
+        function handleFormSubmit(formObject) {
+            event.preventDefault();
+
+            var signatureData = signaturePad.toDataURL();
+            document.getElementById('signature-data').value = signatureData;
+
+            document.getElementById("responseMessage").innerText = "جاري الإرسال...";
+            document.getElementById("responseMessage").style.color = "blue";
+            
+            var dataToSend = {
+                التاريخ: formObject.التاريخ.value,
+                اليوم: formObject.اليوم.value,
+                الحصة: formObject.الحصة.value,
+                الصف: formObject.الصف.value,
+                المادة: formObject.المادة.value,
+                المعلمة_الغائبة: formObject.المعلمة_الغائبة.value,
+                التوقيع: document.getElementById('signature-data').value,
+                رقم_الهاتف: formObject.رقم_الهاتف.value
+            };
+
+            google.script.run.withSuccessHandler(onSuccess).processForm(dataToSend);
+        }
+
+        function onSuccess(response) {
+            document.getElementById("responseMessage").innerText = response;
+            document.getElementById("responseMessage").style.color = "green";
+            document.getElementById("dailyForm").reset();
+            signaturePad.clear();
+        }
+    </script>
+</body>
+</html>
